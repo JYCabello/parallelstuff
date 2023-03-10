@@ -2,12 +2,12 @@ import { createClient, gql } from "@urql/core";
 import 'isomorphic-unfetch';
 
 const client = createClient({
-    url: 'https://ex6ov8p8hl.execute-api.us-east-1.amazonaws.com/production/graphql',
+    url: 'http://localhost:8080/graphql',
   });
 
 const listInventories = gql`
 query {
-    ListInventories{
+    ListStockReadModels{
         items {
             id
             amount
@@ -57,15 +57,14 @@ function delay (miliseconds: number) {
     });
 }
 
-Promise.allSettled([
-    hitIt(),
-    hitIt(),
-    hitIt(),
-]).then(async () => {
-    await delay(5000)
-    const r = await client
-        .query(listInventories, {})
-        .toPromise();
-    return console.log(r.data.ListInventories.items);
+
+
+Promise.allSettled([...Array(15).keys()].map(x => hitIt()))
+.then(async () => {
+    // await delay(5000)
+    // const r = await client
+    //     .query(listInventories, {})
+    //     .toPromise();
+    // return console.log(r.data.ListInventories.items);
 })
 
