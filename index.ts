@@ -1,6 +1,6 @@
 import { createClient, gql } from "@urql/core";
 import 'isomorphic-unfetch';
-const url = 'https://gehsfvet46.execute-api.us-east-1.amazonaws.com/production/graphql';
+const url = 'https://c2suzcck41.execute-api.us-east-1.amazonaws.com/production/graphql';
 const client = createClient({ url });
 
 const listInventories = gql`
@@ -96,8 +96,8 @@ async function showAdditions() {
 }
 
 async function addStuff() {
-  const incrementsSent = 25;
-  const incrementAmount = 2;
+  const incrementsSent = 10;
+  const incrementAmount = 3;
   const pre = await showAdditions();
   console.log(`We had %d before`, pre);
   const results = await Promise
@@ -118,12 +118,20 @@ async function addStuff() {
       })
     );
   
-  console.log("Sent all mutations, total of successes:");
-  console.log(results.filter(r => r?.Add).length);
-  results.filter(r => !r?.Add).forEach(console.log);
-  await delay(1500);
+  const successCount = results.filter(r => r?.Add).length;
+  if (successCount === incrementsSent) {
+    console.log("All increments sent were successful");
+  } else {
+    const failed = results.filter(r => !r?.Add);
+    console.log("%d mutations failed, logs:", failed.length);
+    failed.forEach(console.log);
+  }
 
-  const after = await showAdditions();
+  let after = await showAdditions();
+
+  { await delay(2250); }
+  while (after != (after = await showAdditions()))
+
   console.log(`We have %d after`, after);
   console.log(`Difference %d, expected %d`, after - pre, incrementsSent * incrementAmount);
 }
