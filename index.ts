@@ -1,9 +1,7 @@
 import { createClient, gql } from "@urql/core";
 import 'isomorphic-unfetch';
-
-const client = createClient({
-    url: 'https://avya4kkcqc.execute-api.us-east-1.amazonaws.com/production/graphql',
-  });
+const url = 'https://gehsfvet46.execute-api.us-east-1.amazonaws.com/production/graphql';
+const client = createClient({ url });
 
 const listInventories = gql`
 query {
@@ -70,9 +68,9 @@ async function doStockStuff() {
     });
 }
 
-const add10 = gql`
+const addamount = gql`
 mutation add10 {
-    Add(input: { additionId: "fee75879-9150-4992-a51e-daca256aa9e6", amount: 1 })
+    Add(input: { amount: 4, additionId: "fee75879-9150-4992-a51e-daca256aa9e6" })
 }
 `;
 
@@ -89,25 +87,39 @@ query {
 `;
 
 async function showAdditions() {
-  const preQueryResult = await client.query(getaddition, {}).toPromise();
+  const queryClient = createClient({ url });
+  const preQueryResult = await queryClient.query(getaddition, {}).toPromise();
   if (preQueryResult.data?.ListAdditionReadModels.items) {
-    console.log(preQueryResult.data.ListAdditionReadModels.items[0].amount);
+    return preQueryResult.data.ListAdditionReadModels.items[0]?.amount as number || 0;
   }
+  return 0;
 }
 
 async function addStuff() {
-  await showAdditions();
-  await Promise
-    .allSettled([...Array(100)]
-    .map(async () => {
-      const result = await client.mutation(add10, {}).toPromise();
-      if (!(result.data.Add)) {
-        console.log("One mutation failed");
-      }
-    }));
-  console.log("sent all mutations");
-  await delay(10_000);
-  await showAdditions();
+  const amounts = 25;
+  const pre = await showAdditions();
+  console.log(`We had %d before`, pre);
+  const results = await Promise
+    .all([...Array(amounts)]
+      .map(async () => {
+        const result = 
+          await client
+            .mutation(
+              addamount,
+              { }
+            ).toPromise();
+        return result.data;
+      })
+    );
+  
+  console.log("Sent all mutations, total of successes:");
+  console.log(results.filter(r => r?.Add).length);
+  results.filter(r => !r?.Add).forEach(console.log);
+  await delay(1500);
+
+  const after = await showAdditions();
+  console.log(`We have %d after`, after);
+  console.log(`Difference %d, expected %d`, after - pre, amounts);
 }
 
 addStuff();
