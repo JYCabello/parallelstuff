@@ -69,8 +69,8 @@ async function doStockStuff() {
 }
 
 const addamount = gql`
-mutation add10 {
-    Add(input: { amount: 4, additionId: "fee75879-9150-4992-a51e-daca256aa9e6" })
+mutation add10($input: AddInput!) {
+    Add(input: $input)
 }
 `;
 
@@ -96,17 +96,23 @@ async function showAdditions() {
 }
 
 async function addStuff() {
-  const amounts = 25;
+  const incrementsSent = 25;
+  const incrementAmount = 2;
   const pre = await showAdditions();
   console.log(`We had %d before`, pre);
   const results = await Promise
-    .all([...Array(amounts)]
+    .all([...Array(incrementsSent)]
       .map(async () => {
         const result = 
           await client
             .mutation(
               addamount,
-              { }
+              { 
+                input: {
+                  amount: incrementAmount,
+                  additionId: "fee75879-9150-4992-a51e-daca256aa9e6" 
+                } 
+              }
             ).toPromise();
         return result.data;
       })
@@ -119,7 +125,7 @@ async function addStuff() {
 
   const after = await showAdditions();
   console.log(`We have %d after`, after);
-  console.log(`Difference %d, expected %d`, after - pre, amounts);
+  console.log(`Difference %d, expected %d`, after - pre, incrementsSent * incrementAmount);
 }
 
 addStuff();
